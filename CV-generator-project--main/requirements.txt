@@ -6,4 +6,10 @@ pdfplumber
 pandas
 tqdm
 python-dotenv
- 
+scikit-learn
+joblib
+sentence-transformers
+numpy
+fastapi
+uvicorn[standard]
+pydantic
