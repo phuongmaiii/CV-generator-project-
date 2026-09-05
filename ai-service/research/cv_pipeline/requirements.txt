@@ -1,0 +1,9 @@
+kaggle
+faker
+google-genai
+reportlab
+pdfplumber
+pandas
+tqdm
+python-dotenv
+ 

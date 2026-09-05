@@ -1,0 +1,67 @@
+/*
+  Bảng màu & typography riêng cho sản phẩm — không dùng theme mặc định của
+  Ant Design hay bảng màu "AI-generated" điển hình (nền kem + serif tương phản +
+  accent cam đất). Chủ đề: nền tảng ứng tuyển việc làm IT, cần cảm giác đáng tin
+  cậy + có chiều sâu con người, không phải 1 dashboard SaaS chung chung.
+
+  - Evergreen (#23433A): màu chính — gợi liên tưởng "phát triển sự nghiệp",
+    khác biệt với xanh dương/tím SaaS thường thấy.
+  - Ochre (#B8862B): accent phụ, dùng tiết chế cho điểm số nổi bật nhất.
+  - Paper (#F3F4EF): nền trung tính ấm nhưng nghiêng xanh nhẹ, không phải kem thuần.
+  - Ink (#1C211D): màu chữ chính, đen ấm chứ không phải đen thuần.
+*/
+:root {
+  --color-evergreen: #23433A;
+  --color-evergreen-dark: #172E27;
+  --color-ochre: #B8862B;
+  --color-paper: #F3F4EF;
+  --color-paper-raised: #FFFFFF;
+  --color-ink: #1C211D;
+  --color-ink-muted: #5B655E;
+  --color-border: #DDE0D6;
+
+  --color-match-high: #2F6B4F;
+  --color-match-mid: #B8862B;
+  --color-match-low: #A8502F;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  color-scheme: light;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  font-family: var(--font-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  font-weight: 600;
+  margin: 0;
+}
+
+.score-figure {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 760px) {
+  .auth-hero-panel {
+    display: none;
+  }
+}

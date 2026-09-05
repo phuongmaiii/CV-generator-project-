@@ -1,0 +1,7 @@
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+spring.jpa.hibernate.ddl-auto=${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+fastapi.service.base-url=${FASTAPI_SERVICE_BASE_URL:http://localhost:8000}
+logging.file.name=logs/cv-recruitment.log
+logging.level.com.cvrecruitment=INFO

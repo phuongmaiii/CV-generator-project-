@@ -1,0 +1,56 @@
+﻿services:
+  postgres:
+    image: postgres:15
+    container_name: cv_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: cv_recruitment_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  fastapi:
+    build: ./ai-service
+    container_name: cv_fastapi
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  springboot:
+    build: ./backend-service
+    container_name: cv_springboot
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/cv_recruitment_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=yourpassword
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - FASTAPI_SERVICE_BASE_URL=http://fastapi:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      fastapi:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    container_name: cv_react
+    ports:
+      - "5173:5173"    # <--- Đổi từ "5173:80" thành "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080
+    depends_on:
+      - springboot
+
+volumes:
+  pgdata:

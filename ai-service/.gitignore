@@ -1,0 +1,16 @@
+# Bỏ qua môi trường ảo (Virtual Environment)
+project/.venv/
+.venv/
+
+# Bỏ qua các biến môi trường (Chứa API Key)
+.env
+
+# Bỏ qua dữ liệu thô và mô hình nặng
+CV-generator-project--main/data/archive.zip
+CV-generator-project--main/data/kaggle_raw/
+CV-generator-project--main/data/ner_finetuned_model/
+
+# Bỏ qua các file rác của hệ thống/Python
+__pycache__/
+*.pyc
+.DS_Store
