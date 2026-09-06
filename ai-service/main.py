@@ -359,9 +359,51 @@ def calculate_batch_match_scores(request: BatchMatchRequest):
 
     job_desc = request.job_description or ""
     scores = []
+    
+    # 1. Tránh tính toán nếu không có Job Description
+    if not job_desc.strip():
+        for candidate in request.candidates:
+            scores.append({"candidate_id": candidate.candidate_id, "match_percent": 0.0})
+        return {"scores": scores}
+
+    # ================= CẢI TIẾN QUAN TRỌNG VỀ HIỆU SUẤT =================
+    # 2. Xây dựng và FIT vectorizer với Job Description CHỈ MỘT LẦN DUY NHẤT
+    try:
+        vectorizer = build_vectorizer()
+        # Học tập các từ vựng có trong Job Description
+        tfidf_job_matrix = vectorizer.fit_transform([job_desc]) 
+    except Exception as e:
+        print(f"Lỗi khi build TF-IDF chung cho batch: {e}")
+        # Nếu lỗi, fallback về 0 cho an toàn
+        for candidate in request.candidates:
+            scores.append({"candidate_id": candidate.candidate_id, "match_percent": 0.0})
+        return {"scores": scores}
+
+    # 3. Lặp qua từng CV: Chỉ TRANSFORM (rất nhẹ) dựa trên từ vựng đã học, không FIT lại
     for candidate in request.candidates:
-        percent = compute_match_score(candidate.cv_text or "", job_desc)
-        scores.append({"candidate_id": candidate.candidate_id, "match_percent": percent})
+        cv_text = candidate.cv_text or ""
+        
+        if not cv_text.strip():
+            scores.append({"candidate_id": candidate.candidate_id, "match_percent": 0.0})
+            continue
+            
+        try:
+            # Transform CV thành vector dựa trên bộ từ vựng của JD
+            tfidf_cv_matrix = vectorizer.transform([cv_text])
+            raw_similarity = cosine_similarity(tfidf_cv_matrix, tfidf_job_matrix)[0][0]
+            tfidf_score = scale_similarity(float(raw_similarity))
+        except Exception as e:
+            print(f"Lỗi khi tính TF-IDF cho ứng viên {candidate.candidate_id}: {e}")
+            tfidf_score = 0.0
+
+        # Tính điểm Keyword (thuật toán này dùng Regex nên giữ nguyên, rất nhẹ)
+        kw_score = keyword_overlap_score(cv_text, job_desc)
+
+        # Tổng hợp điểm
+        final_score = round(0.55 * tfidf_score + 0.45 * kw_score, 2)
+        final_percent = min(final_score, 100.0)
+        
+        scores.append({"candidate_id": candidate.candidate_id, "match_percent": final_percent})
 
     return {"scores": scores}
 
