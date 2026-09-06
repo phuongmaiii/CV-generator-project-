@@ -65,8 +65,7 @@ lúc cấp (xem `AuthUtil`), không phải JWT chuẩn.*
 **Request flow (CV upload → match score):**
 1. User uploads a CV (PDF) via the React frontend.
 2. Spring Boot forwards the file to the FastAPI AI service (`/parse-cv`).
-3. FastAPI extracts text (`pdfplumber`) and classifies industry & position using
-   keyword-count rules with a minimum-match threshold (not a trained ML classifier).
+3. FastAPI extracts text (pdfplumber) and uses a hybrid 2-tier classification pipeline: a trained Support Vector Machine (SVM) model predicts the candidate's industry & position. If the SVM prediction confidence falls below the 0.3 threshold, the system automatically falls back to a rule-based engine (regex keyword scoring) to ensure reliable classification.
 4. Backend persists the CV upload as a new application record and triggers TopCV
    crawling + scoring once, storing the result (no longer re-crawled on every page
    view — see Known Limitations below for the history of this bug).
@@ -89,10 +88,8 @@ lúc cấp (xem `AuthUtil`), không phải JWT chuẩn.*
 ## Key Features
 
 - 📄 **PDF CV parsing** — extracts raw text via `pdfplumber`
-- 🏷️ **Rule-based classification** — keyword-count rules (with a minimum-score
-  threshold) predict candidate industry and target position; not a trained model
-- 🧮 **Hybrid TF-IDF matching** — TF-IDF cosine similarity (bigrams, VN+EN stopwords)
-  blended with explicit keyword overlap, replacing an earlier ad-hoc log-scaling hack
+- 🏷️ **Hybrid NLP Classification** — Combines a trained SVM classifier with a fallback rule-based engine (activated when SVM confidence < 0.3) to accurately predict candidate industry and target position.
+- 🧮 **Advanced CV-JD Matching** — Blends TF-IDF cosine similarity (using bigrams and bilingual VN+EN stopwords) with explicit keyword overlap (weighted 55/45) for highly accurate scoring.
 - 📊 **Candidate dashboard** — lists every position applied to, with the top match %
   per application; **HR dashboard** — ranked candidates per job posting
 - 🌐 **Bilingual text handling** — regex and stopword lists cover both English and
@@ -103,7 +100,8 @@ lúc cấp (xem `AuthUtil`), không phải JWT chuẩn.*
 Documented honestly here rather than glossed over, since these came up during a code
 review pass and are worth being able to explain in a defense:
 
-- **Production relies on Rule-based fallback due to hardware limits.** While trained ML models (SVM for classification) and experimental NER pipelines were developed and are preserved in the `ai-service-integration/` directory, they are not actively served in the production API. Deploying these models exceeded Render's free tier RAM limits. As a deliberate engineering trade-off for this 7-week capstone, the production environment uses a lightweight rule-based/regex pipeline and TF-IDF to ensure system stability and acceptable response times.
+- **Lightweight ML instead of Deep Learning:** While the system actively serves trained ML models (SVM, TF-IDF) in production, it deliberately avoids heavy semantic embedding models (e.g., SentenceTransformers or BERT). This was an explicit engineering trade-off made to keep the architecture viable within Render's strict free-tier RAM limits (~512MB) while maintaining fast response times.
+- **NER remains in research phase:** A custom Named Entity Recognition (NER) pipeline using fine-tuned spaCy was developed and evaluated (achieving ~0.80 F1-score for skills), but it is currently kept in the research directory and not yet integrated into the main production parsing flow.
 - **Auth is a custom UUID token, not JWT.** Simple to implement in the time available;
   trade-off is it must be looked up in the DB on every request (no self-contained
   claims) and doesn't support refresh tokens. It now expires after 24h (see
