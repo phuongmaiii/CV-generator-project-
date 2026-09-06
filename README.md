@@ -103,11 +103,7 @@ lúc cấp (xem `AuthUtil`), không phải JWT chuẩn.*
 Documented honestly here rather than glossed over, since these came up during a code
 review pass and are worth being able to explain in a defense:
 
-- **No trained ML model.** Industry/position classification and matching are all
-  rule-based (regex keyword counts) or classical TF-IDF — not the SVM/sentence-
-  embedding pipeline an earlier draft of this README implied. This was a deliberate
-  scope decision for a 7-week capstone deployed on Render's free tier (loading a
-  ~400-500MB multilingual embedding model risks exceeding the free tier's RAM).
+- **Production relies on Rule-based fallback due to hardware limits.** While trained ML models (SVM for classification) and experimental NER pipelines were developed and are preserved in the `ai-service-integration/` directory, they are not actively served in the production API. Deploying these models exceeded Render's free tier RAM limits. As a deliberate engineering trade-off for this 7-week capstone, the production environment uses a lightweight rule-based/regex pipeline and TF-IDF to ensure system stability and acceptable response times.
 - **Auth is a custom UUID token, not JWT.** Simple to implement in the time available;
   trade-off is it must be looked up in the DB on every request (no self-contained
   claims) and doesn't support refresh tokens. It now expires after 24h (see
